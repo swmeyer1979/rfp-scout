@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: rfp-scout-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SAM_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: moonshotai/kimi-k2.6
+      - key: TIER
+        value: basic
+      - key: TOP_N
+        value: "10"
+      - key: RESULTS_FILE
+        value: rfps.json
+      - key: OUTPUT_DIR
+        value: output
+  - type: cron
+    name: rfp-scout-daily
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    schedule: "0 6 * * *"
+    startCommand: python sam_gov_scanner.py && python alert_generator.py
+    envVars:
+      - key: SAM_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: moonshotai/kimi-k2.6
+      - key: TIER
+        value: basic
+      - key: TOP_N
+        value: "10"
+      - key: RESULTS_FILE
+        value: rfps.json
+      - key: OUTPUT_DIR
+        value: output
